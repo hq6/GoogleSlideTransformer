@@ -8,7 +8,7 @@ For example, if one wanted to update the font size on all page numbers, and not
 all pages used the same master, one could do so automatically with the
 following command.
 
-    python SlideTransformer.py  '1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI' --filter 'type=SLIDE_NUMBER'  -t 'textStyle:fontSize=20'
+    python SlideTransformer.py   --filter 'type:v=="SLIDE_NUMBER"'  -t 'textStyle:fontSize=8' '1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI'
 
 
 The author is currently implemented transformations and filters in a rather ad

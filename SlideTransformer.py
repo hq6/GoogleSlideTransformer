@@ -20,7 +20,7 @@ def eliminateMatchingCriteria(e, filters):
     if not type(e) is dict:
         return
     for key in e:
-        if key in filters and e[key] == filters[key]:
+        if key in filters and filters[key](e[key]):
             del filters[key]
             continue
         eliminateMatchingCriteria(e[key], filters)
@@ -29,8 +29,8 @@ def getObjectIds(pageElements, rawFilters):
     # First parse rawFilters. They are ANDed together logically.
     processed_filters = {}
     for x in rawFilters:
-        key, value = x.split("=")
-        processed_filters[key] = value
+        key, e = x.split(":", 1)
+        processed_filters[key] = eval("lambda v: " +  e)
 
     # Output objectIds
     results = []
@@ -81,7 +81,7 @@ doc = r"""
 Usage: ./SlideTransformer.py  [-s <slide_ranges>] [-f <filter>]... [-t <transform>]... <presentation_id>
 
     -h,--help                    show this
-    -f,--filter <filter>         filter of form key = value; Future implementations may generalize this
+    -f,--filter <filter>         filter of form key:lambda_expression_using_v
     -t,--transform <transform>   Transform with "category:Key = Value" syntax.
     -s,--slides <slide_ranges>   Slide ranges to look for perform transformations over.
 """

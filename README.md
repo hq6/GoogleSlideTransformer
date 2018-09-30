@@ -36,3 +36,15 @@ Given that this app is deployed as a stand-alone script rather than hosted on a 
 3. Click "Next"
 4. Click "Download Client Configuration" and save credentials.json in the
    directory this application will be executed from.
+
+## Dependencies
+
+ * [Google API Python Client](https://developers.google.com/slides/how-tos/libraries#python).
+
+```
+ pip install --upgrade google-api-python-client
+```
+ * OAuth 2 Client
+```
+sudo pip install --upgrade oauth2client
+```

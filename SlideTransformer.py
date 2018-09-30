@@ -16,9 +16,6 @@ from sys import exit
 # If modifying these scopes, delete the file token.json.
 SCOPES = 'https://www.googleapis.com/auth/presentations'
 
-# The ID of a sample presentation.
-PRESENTATION_ID = '1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI'
-
 def eliminateMatchingCriteria(e, filters):
     if not type(e) is dict:
         return
@@ -126,7 +123,7 @@ def main():
     # Send request
     body = { 'requests': requests }
     response = service.presentations().batchUpdate(
-                presentationId=PRESENTATION_ID, body=body).execute()
+                presentationId=options['<presentation_id>'], body=body).execute()
 
 
 

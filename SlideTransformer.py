@@ -11,7 +11,7 @@ from oauth2client import file, client, tools
 # Parsing options
 from docopt import docopt
 
-from sys import exit
+from sys import exit, argv
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = 'https://www.googleapis.com/auth/presentations'
@@ -88,6 +88,9 @@ Usage: ./SlideTransformer.py  [-s <slide_ranges>] [-f <filter>]... [-t <transfor
 def main():
     options = docopt(doc)
     print(options)
+
+    # Clear argv so that the oauth service does not freak out
+    del argv[1:]
     service = getService()
 
     # Call the Slides API

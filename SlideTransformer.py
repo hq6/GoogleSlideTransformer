@@ -65,13 +65,27 @@ def parseRanges(integerRanges):
         output.append(int(r))
     return output
 
+def transformToRequest(transform, objectId):
+    category, op = transform.split(":", 1)
+    field, value = op.split("=")
+    # Add more operation types here
+    request = {}
+    if category == "textStyle":
+        request['updateTextStyle'] = {}
+        request['updateTextStyle']['objectId'] = objectId
+        request['updateTextStyle']['textRange'] = { 'type': 'ALL' }
+        request['updateTextStyle']['fields'] = field
+        # Add more types of text style changes here
+        if field == 'fontSize':
+            request['updateTextStyle']['style'] = { 'fontSize': {'magnitude' : value, 'unit' : 'PT'}}
+    return request
 
 doc = r"""
 Usage: ./SlideTransformer.py  [-s <slide_ranges>] [-f <filter>]... [-t <transform>]... <presentation_id>
 
     -h,--help                    show this
-    -f,--filters <filter>        filters of form key = value; Future implementations may generalize this
-    -t,--transform <transform>   Transform using the syntax required by Google Slides API, without objectId.
+    -f,--filter <filter>         filter of form key = value; Future implementations may generalize this
+    -t,--transform <transform>   Transform with "category:Key = Value" syntax.
     -s,--slides <slide_ranges>   Slide ranges to look for perform transformations over.
 """
 def main():
@@ -95,29 +109,24 @@ def main():
         slideFilter = parseRanges(options['--slides'])
 
     requests = []
-    print('The presentation contains {} slides:'.format(len(slides)))
+    print('The presentation contains {} slides.'.format(len(slides)))
     for i, slide in enumerate(slides):
         # Slides are numbered starting at 1
         if slideFilter and (i + 1) not in slideFilter:
             continue
 
 	# Find all elements matching the criteria
-	objectIds = getObjectIds(slide.get('pageElements'), options['--filters'])
-	print(objectIds)
+	objectIds = getObjectIds(slide.get('pageElements'), options['--filter'])
 
-        #if pageNumId:
-        #    request = {}
-        #    request['updateTextStyle'] = {}
-        #    request['updateTextStyle']['objectId'] = pageNumId
-        #    request['updateTextStyle']['textRange'] = { 'type': 'ALL' }
-        #    request['updateTextStyle']['style'] = { 'fontSize': {'magnitude' : 14, 'unit' : 'PT'}}
-        #    request['updateTextStyle']['fields'] = 'fontSize'
-        #    requests.append(request) 
+        for objectId in objectIds:
+          # Apply the transform
+          for transform in options['--transform']:
+            requests.append(transformToRequest(transform, objectId))
 
     # Send request
-    #body = { 'requests': requests }
-    #response = service.presentations().batchUpdate(
-    #            presentationId=PRESENTATION_ID, body=body).execute()
+    body = { 'requests': requests }
+    response = service.presentations().batchUpdate(
+                presentationId=PRESENTATION_ID, body=body).execute()
 
 
 

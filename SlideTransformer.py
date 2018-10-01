@@ -155,7 +155,7 @@ def main():
 
     if options['--dry-run']:
         return
-    print(requests)
+    print("\n".join([str(x) for x in requests]))
     # Send request
     body = { 'requests': requests }
     response = service.presentations().batchUpdate(

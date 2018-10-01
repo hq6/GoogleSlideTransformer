@@ -54,3 +54,7 @@ Given that this app is deployed as a stand-alone script rather than hosted on a 
 ```
 sudo pip install --upgrade oauth2client
 ```
+
+## References
+
+ * https://developers.google.com/slides/reference/rest/v1/presentations.pages/other#Page.ThemeColorType

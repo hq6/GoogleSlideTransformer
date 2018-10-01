@@ -58,3 +58,5 @@ sudo pip install --upgrade oauth2client
 ## References
 
  * https://developers.google.com/slides/reference/rest/v1/presentations.pages/other#Page.ThemeColorType
+ * https://developers.google.com/slides/reference/rest/v1/presentations/request
+

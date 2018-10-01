@@ -91,13 +91,16 @@ def transformToRequest(transform, objectId):
     elif category == "shapeProperties":
         request['updateShapeProperties']['objectId'] = objectId
         request['updateShapeProperties']['fields'] = field
-        # Add more types of shape property changes here
-        if field == 'shapeBackgroundFill.solidFill.color':
-            colorType, colorValue = value.split(":")
-            request['updateShapeProperties']['shapeProperties']['shapeBackgroundFill']['solidFill']['color'][colorType] = colorValue
-        elif field == 'outline.outlineFill.solidFill.color':
-            colorType, colorValue = value.split(":")
-            request['updateShapeProperties']['shapeProperties']['outline']['outlineFill']['solidFill']['color'][colorType] = colorValue
+
+        # Generate request from field and value
+        fieldParts = field.split(".")
+        cur = request['updateShapeProperties']['shapeProperties']
+        for x in fieldParts[:-1]:
+            cur = cur[x]
+
+        # Assign the value.
+        cur[fieldParts[-1]] = value
+
     return default_to_regular(request)
 
 doc = r"""

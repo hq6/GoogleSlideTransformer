@@ -95,6 +95,9 @@ def transformToRequest(transform, objectId):
         if field == 'shapeBackgroundFill.solidFill.color':
             colorType, colorValue = value.split(":")
             request['updateShapeProperties']['shapeProperties']['shapeBackgroundFill']['solidFill']['color'][colorType] = colorValue
+        elif field == 'outline.outlineFill.solidFill.color':
+            colorType, colorValue = value.split(":")
+            request['updateShapeProperties']['shapeProperties']['outline']['outlineFill']['solidFill']['color'][colorType] = colorValue
     return default_to_regular(request)
 
 doc = r"""

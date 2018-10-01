@@ -19,6 +19,9 @@ from collections import defaultdict
 # If modifying these scopes, delete the file token.json.
 SCOPES = 'https://www.googleapis.com/auth/presentations'
 
+# Allow us to access page elements by id
+idToPageElement = {}
+
 def eliminateMatchingCriteria(e, filters):
     if not type(e) is dict:
         return
@@ -100,8 +103,25 @@ def transformToRequest(transform, objectId):
 
         # Assign the value.
         cur[fieldParts[-1]] = value
+    elif category == 'transformPageElement':
+        # Currently support only reference elmeents
+        if not value.startswith("&"):
+            print("Transforming page elements only supports reference objects!", file=sys.stderr)
+        refId = value[1:]
+        request['updatePageElementTransform']['objectId'] = objectId
+        request['updatePageElementTransform']['applyMode'] = "ABSOLUTE"
+        request['updatePageElementTransform']['transform'] = idToPageElement[refId]['transform']
 
     return default_to_regular(request)
+
+
+
+def generateIdToPageElement(slides):
+    output = {}
+    for slide in slides:
+      for element in slide.get('pageElements'):
+          output[element['objectId']] = element
+    return output
 
 doc = r"""
 Usage: ./SlideTransformer.py  [-n] [-s <slide_ranges>] [-f <filter>]... [-t <transform>]... <presentation_id>
@@ -129,6 +149,10 @@ def main():
     except:
         print("Failed to get slides, likely invalid presentation id passed")
         exit(1)
+
+    # Build an index of objectIds to PageElements
+    global idToPageElement
+    idToPageElement = generateIdToPageElement(slides)
 
     # Check for a slide filter
     slideFilter = None

@@ -13,6 +13,9 @@ from docopt import docopt
 
 from sys import exit, argv
 
+# Nested dictionaries
+from collections import defaultdict
+
 # If modifying these scopes, delete the file token.json.
 SCOPES = 'https://www.googleapis.com/auth/presentations'
 
@@ -40,6 +43,7 @@ def getObjectIds(pageElements, rawFilters):
       copyOfFilters = processed_filters.copy()
       eliminateMatchingCriteria(element, copyOfFilters)
       if not copyOfFilters: # All filters were matched
+          print(element)
           results.append(element['objectId'])
     return results
 
@@ -62,24 +66,41 @@ def parseRanges(integerRanges):
         output.append(int(r))
     return output
 
+
+
 def transformToRequest(transform, objectId):
+    def default_to_regular(d):
+        if isinstance(d, defaultdict):
+            d = {k: default_to_regular(v) for k, v in d.items()}
+        return d
+
+    def recursive_defaultdict():
+        return defaultdict(recursive_defaultdict)
+
     category, op = transform.split(":", 1)
     field, value = op.split("=")
     # Add more operation types here
-    request = {}
+    request = recursive_defaultdict()
     if category == "textStyle":
-        request['updateTextStyle'] = {}
         request['updateTextStyle']['objectId'] = objectId
-        request['updateTextStyle']['textRange'] = { 'type': 'ALL' }
+        request['updateTextStyle']['textRange']['type'] = 'ALL'
         request['updateTextStyle']['fields'] = field
         # Add more types of text style changes here
         if field == 'fontSize':
-            request['updateTextStyle']['style'] = { 'fontSize': {'magnitude' : value, 'unit' : 'PT'}}
-    return request
+            request['updateTextStyle']['style']['fontSize'] = {'magnitude' : value, 'unit' : 'PT'}
+    elif category == "shapeProperties":
+        request['updateShapeProperties']['objectId'] = objectId
+        request['updateShapeProperties']['fields'] = field
+        # Add more types of shape property changes here
+        if field == 'shapeBackgroundFill.solidFill.color':
+            colorType, colorValue = value.split(":")
+            request['updateShapeProperties']['shapeProperties']['shapeBackgroundFill']['solidFill']['color'][colorType] = colorValue
+    return default_to_regular(request)
 
 doc = r"""
-Usage: ./SlideTransformer.py  [-s <slide_ranges>] [-f <filter>]... [-t <transform>]... <presentation_id>
+Usage: ./SlideTransformer.py  [-n] [-s <slide_ranges>] [-f <filter>]... [-t <transform>]... <presentation_id>
 
+    -n,--dry-run                 print objects found, do not perform transformation
     -h,--help                    show this
     -f,--filter <filter>         filter of form key:lambda_expression_using_v
     -t,--transform <transform>   Transform with "category:Key = Value" syntax.
@@ -115,14 +136,20 @@ def main():
         if slideFilter and (i + 1) not in slideFilter:
             continue
 
-	# Find all elements matching the criteria
-	objectIds = getObjectIds(slide.get('pageElements'), options['--filter'])
+        # Find all elements matching the criteria
+        objectIds = getObjectIds(slide.get('pageElements'), options['--filter'])
+
+        if options['--dry-run']:
+            continue
 
         for objectId in objectIds:
           # Apply the transform
           for transform in options['--transform']:
             requests.append(transformToRequest(transform, objectId))
 
+    if options['--dry-run']:
+        return
+    print(requests)
     # Send request
     body = { 'requests': requests }
     response = service.presentations().batchUpdate(

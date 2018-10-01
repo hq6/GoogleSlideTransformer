@@ -10,6 +10,12 @@ following command.
 
     python SlideTransformer.py   --filter 'type:v=="SLIDE_NUMBER"'  -t 'textStyle:fontSize=8' '1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI'
 
+If one wanted to update the fill color of a set of ellipses on a particular slide, one could use the following command.
+
+    python SlideTransformer.py -s '6'  -f 'shapeType:v=="ELLIPSE"' -f'color:"themeColor" in v' \
+        -t 'shapeProperties:shapeBackgroundFill.solidFill.color=themeColor:ACCENT4' \
+        1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI
+
 
 The author is currently implemented transformations and filters in a rather ad
 hoc manner, depending on what is needed for his particular presentation, and

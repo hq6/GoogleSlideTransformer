@@ -23,6 +23,9 @@ SCOPES = 'https://www.googleapis.com/auth/presentations'
 idToPageElement = {}
 
 def eliminateMatchingCriteria(e, filters):
+    if type(e) is list:
+        for x in e:
+            eliminateMatchingCriteria(x, filters)
     if not type(e) is dict:
         return
     for key in e:
@@ -31,19 +34,17 @@ def eliminateMatchingCriteria(e, filters):
             continue
         eliminateMatchingCriteria(e[key], filters)
 
-def getObjectIds(pageElements, rawFilters):
-    # First parse rawFilters. They are ANDed together logically.
-    processed_filters = {}
-    for x in rawFilters:
-        key, e = x.split(":", 1)
-        processed_filters[key] = eval("lambda v: " +  e)
-
+def getObjectIds(pageElements, processedFilters):
     # Output objectIds
     results = []
     # We can only find top-level objects for now.
     for element in pageElements:
+      # Recursely check groups
+      if "elementGroup" in element:
+         results.extend(getObjectIds(element["elementGroup"]["children"], processedFilters))
+         continue
       # Dig into the element until we find the field we desire.
-      copyOfFilters = processed_filters.copy()
+      copyOfFilters = processedFilters.copy()
       eliminateMatchingCriteria(element, copyOfFilters)
       if not copyOfFilters: # All filters were matched
           print(element)
@@ -124,11 +125,12 @@ def transformToRequest(transform, objectId):
 
 
 
-def generateIdToPageElement(slides):
+def generateIdToPageElement(elements):
     output = {}
-    for slide in slides:
-      for element in slide.get('pageElements'):
-          output[element['objectId']] = element
+    for element in elements:
+      output[element['objectId']] = element
+      if "elementGroup" in element:
+         output.update(generateIdToPageElement(element["elementGroup"]["children"]))
     return output
 
 doc = r"""
@@ -160,12 +162,24 @@ def main():
 
     # Build an index of objectIds to PageElements
     global idToPageElement
-    idToPageElement = generateIdToPageElement(slides)
+    # elements = []
+    # for slide in slides:
+    #   for element in slide.get('pageElements'):
+    #     elements.append(element)
+
+    idToPageElement = generateIdToPageElement([element for slide in slides for element in slide.get('pageElements')])
 
     # Check for a slide filter
     slideFilter = None
     if options['--slides']:
         slideFilter = parseRanges(options['--slides'])
+
+    # Convert filters exactly once
+    processedFilters = {}
+    for x in options['--filter']:
+        key, e = x.split(":", 1)
+        processedFilters[key] = eval("lambda v: " +  e)
+
 
     requests = []
     print('The presentation contains {} slides.'.format(len(slides)))
@@ -175,7 +189,8 @@ def main():
             continue
 
         # Find all elements matching the criteria
-        objectIds = getObjectIds(slide.get('pageElements'), options['--filter'])
+
+        objectIds = getObjectIds(slide.get('pageElements'), processedFilters)
 
         if options['--dry-run']:
             continue

@@ -12,3 +12,6 @@ Since the API is so verbose, the commands must also be verbose so as to be speci
     # Match the size and position of a reference object; useful for aligning
     # figure builds across slides.
     python SlideTransformer.py  -s 32-34 -f 'image:True' -t 'transformPageElement:=&g4361db93fb_1_34'  '1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI'
+
+    # Match the outline of a reference object.
+    python SlideTransformer.py  -s 5  -f 'shapeType:v=="RECTANGLE"' -t 'shapeProperties:outline.weight=&g22ce160f4f_0_47'  1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI

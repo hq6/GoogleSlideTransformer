@@ -102,6 +102,14 @@ def transformToRequest(transform, objectId):
             cur = cur[x]
 
         # Assign the value.
+        if value.startswith("&"):
+            # Grab the value from the target object
+            value = idToPageElement[value[1:]]
+            # print("FOO " + str(value) + " BAR" )
+            value = value['shape']['shapeProperties']
+            for x in fieldParts:
+                value = value[x]
+        # print("FOO " + str(value) + " BAR" )
         cur[fieldParts[-1]] = value
     elif category == 'transformPageElement':
         # Currently support only reference elmeents

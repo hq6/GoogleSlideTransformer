@@ -92,6 +92,9 @@ def transformToRequest(transform, objectId):
         # Add more types of text style changes here
         if field == 'fontSize':
             request['updateTextStyle']['style']['fontSize'] = {'magnitude' : value, 'unit' : 'PT'}
+        elif field == 'fontColor':
+            request['updateTextStyle']['fields'] = 'foregroundColor'
+            request['updateTextStyle']['style']['foregroundColor']['opaqueColor']['themeColor'] = value
     elif category == "shapeProperties":
         request['updateShapeProperties']['objectId'] = objectId
         request['updateShapeProperties']['fields'] = field

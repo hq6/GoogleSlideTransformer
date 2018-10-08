@@ -124,9 +124,30 @@ def transformToRequest(transform, objectId):
         request['updatePageElementTransform']['applyMode'] = "ABSOLUTE"
         request['updatePageElementTransform']['transform'] = idToPageElement[refId]['transform']
 
+    elif category == "imageProperties":
+        if not value.startswith("&"):
+            print("Transforming image properties only supports reference objects!", file=sys.stderr)
+        request['updateImageProperties']['objectId'] = objectId
+        request['updateImageProperties']['fields'] = field
+
+        # Generate request from field and value
+        fieldParts = field.split(".")
+        cur = request['updateImageProperties']['imageProperties']
+        for x in fieldParts[:-1]:
+            cur = cur[x]
+
+        # Assign the value.
+        if value.startswith("&"):
+            # Grab the value from the target object
+            value = idToPageElement[value[1:]]
+            # print("FOO " + str(value) + " BAR" )
+            value = value['image']['imageProperties']
+            for x in fieldParts:
+                value = value[x]
+        # print("FOO " + str(value) + " BAR" )
+        cur[fieldParts[-1]] = value
+
     return default_to_regular(request)
-
-
 
 def generateIdToPageElement(elements):
     output = {}

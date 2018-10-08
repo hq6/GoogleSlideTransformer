@@ -153,7 +153,7 @@ def tryParse(element):
     # print(textElements)
     for text in textElements:
       try:
-        print(text['textRun']['content'].encode('utf-8'))
+        print(text['textRun']['content'].encode('utf-8').strip())
       except:
         pass
 

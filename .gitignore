@@ -1,0 +1,6 @@
+# Credentials files
+credentials.json
+token.json
+
+# Text files
+*.txt

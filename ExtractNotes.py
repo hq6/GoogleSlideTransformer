@@ -48,7 +48,6 @@ Usage: ./ExtractNotes.py <presentation_id>
 """
 def main():
     options = docopt(doc)
-    print(options)
 
     # Clear argv so that the oauth service does not freak out
     del argv[1:]
@@ -56,7 +55,6 @@ def main():
 
     # Call the Slides API
     try:
-        print("Processing presentation {0}".format(options['<presentation_id>']))
         presentation = service.presentations().get(
             presentationId=options['<presentation_id>']).execute()
         slides = presentation.get('slides')
@@ -64,20 +62,16 @@ def main():
         print("Failed to get slides, likely invalid presentation id passed")
         exit(1)
 
-    # Build an index of objectIds to PageElements
-    print('The presentation contains {} slides.'.format(len(slides)))
-
     # Extract notes.
     for i, slide in enumerate(slides):
         # Find all elements matching the criteria
+        print("=" * 80)
         print("Slide {0}".format(i+1))
         notesPage = slide["slideProperties"]["notesPage"]
         notesId = notesPage["notesProperties"]["speakerNotesObjectId"]
         for element in notesPage['pageElements']:
             if element['objectId'] == notesId:
               tryParse(element)
-
-        print("=" * 80)
 
 if __name__ == '__main__':
     main()

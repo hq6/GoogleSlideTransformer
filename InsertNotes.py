@@ -54,7 +54,7 @@ def parseNotes(notesFile):
 
           possibleNewSlide = False
     # The last slide should be added
-    if previousSlideNum and currentLines:
+    if previousSlideNum:
         result[previousSlideNum] = "\n".join(currentLines)
     return result
 
@@ -93,7 +93,6 @@ def main():
         print("=" * 80)
         print("Slide {0}".format(x))
         print(notes[x])
-    return
 
     # Clear argv so that the oauth service does not freak out
     del argv[1:]
@@ -112,21 +111,42 @@ def main():
 
     print('The presentation contains {} slides.'.format(len(slides)))
 
-    # TODO: Build the requests
+    # Build the requests -- build a set of requests to automatically
+    # upload a set of notes to google slides
+    def recursive_defaultdict():
+        return defaultdict(recursive_defaultdict)
+    requests = []
 
     # Extract notes.
     for i, slide in enumerate(slides):
+	slideNum = i + 1
         # Find all elements matching the criteria
-        print("Slide {0}".format(i+1))
+        # print("Slide {0}".format(slideNum))
         notesPage = slide["slideProperties"]["notesPage"]
         notesId = notesPage["notesProperties"]["speakerNotesObjectId"]
-        for element in notesPage['pageElements']:
-            if element['objectId'] == notesId:
-              tryParse(element)
 
-        print("=" * 80)
+	if slideNum not in notes:
+	  continue
+	# Delete all text
+	request = recursive_defaultdict()
+	request["deleteText"]["objectId"] = notesId
+	request["deleteText"]["textRange"]['type'] = 'ALL'
+	requests.append(request)
 
-    # TODO: Send the requests
+	# Insert new text
+	request = recursive_defaultdict()
+	request["insertText"]["objectId"] = notesId
+	request["insertText"]["insertionIndex"] = 0
+	request["insertText"]["text"] = notes[slideNum]
+	requests.append(request)
+
+    # Send the requests
+    if len(requests) == 0:
+        print("No notes found")
+        return
+    body = { 'requests': requests }
+    response = service.presentations().batchUpdate(
+                presentationId=options['<presentation_id>'], body=body).execute()
 
 if __name__ == '__main__':
     main()

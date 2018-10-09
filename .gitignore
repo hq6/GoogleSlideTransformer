@@ -4,3 +4,6 @@ token.json
 
 # Text files
 *.txt
+
+# Vim swap files
+.*.swp

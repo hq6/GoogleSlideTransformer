@@ -31,6 +31,8 @@ def getService():
     return build('slides', 'v1', http=creds.authorize(Http()))
 
 def parseNotes(notesFile):
+    if not notesFile:
+        return {}
     result = {}
     currentLines = []
     possibleNewSlide = False
@@ -75,20 +77,23 @@ def tryParse(element):
         pass
 
 doc = r"""
-Usage: ./InsertNotes.py <presentation_id> <notes>
+Usage: ./InsertNotes.py [-c] <presentation_id> [<notes>]
 
     -h,--help           show this
+    -c,--clear          When set, clear all the notes in the presentation.
     <presentation_id>   the presentation to update
     <notes>             A text file with records beginning with 80 '=' characters, and Slide N.
 """
 def main():
     options = docopt(doc)
+    print(options)
 
     # Parse the notes
     notes = parseNotes(options['<notes>'])
 
     # Test what was read
-    for x in range(1, max(notes.keys()) + 1):
+    if notes:
+      for x in range(1, max(notes.keys()) + 1):
         if x not in  notes: continue
         print("=" * 80)
         print("Slide {0}".format(x))
@@ -115,6 +120,35 @@ def main():
     # upload a set of notes to google slides
     def recursive_defaultdict():
         return defaultdict(recursive_defaultdict)
+    def createDeleteRequest(notesId):
+	request = recursive_defaultdict()
+	request["deleteText"]["objectId"] = notesId
+	request["deleteText"]["textRange"]['type'] = 'ALL'
+        return request
+
+    # Extact any and all texts from an element.
+    def getAllText(element):
+        textElements = []
+        output = ""
+        try:
+          textElements = element['shape']['text']['textElements']
+        except:
+          pass
+
+        # print(textElements)
+        for text in textElements:
+          try:
+            output += text['textRun']['content'].encode('utf-8').strip()
+          except:
+            pass
+        return output
+    # pageElements are the elements of the notes page.
+    def notesExist(notesId, pageElements):
+        for element in pageElements:
+          if element['objectId'] == notesId:
+              return getAllText(element)
+        return False
+
     requests = []
 
     # Extract notes.
@@ -124,14 +158,18 @@ def main():
         # print("Slide {0}".format(slideNum))
         notesPage = slide["slideProperties"]["notesPage"]
         notesId = notesPage["notesProperties"]["speakerNotesObjectId"]
+        # We have to check if the notes exist because Google Slides API is
+        # silly and doesn't just treat deletions of non-existent elements as
+        # no-ops
+        if options['--clear'] and notesExist(notesId, notesPage['pageElements']):
+            requests.append(createDeleteRequest(notesId))
+            continue
 
 	if slideNum not in notes:
 	  continue
 	# Delete all text
-	request = recursive_defaultdict()
-	request["deleteText"]["objectId"] = notesId
-	request["deleteText"]["textRange"]['type'] = 'ALL'
-	requests.append(request)
+        if notesExist(notesId, notesPage['pageElements']):
+	    requests.append(createDeleteRequest(notesId))
 
 	# Insert new text
 	request = recursive_defaultdict()

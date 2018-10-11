@@ -1,6 +1,6 @@
 # Google Slides Transformation Tool
 
-This tool (still under development) is intended to make it easier to automate
+This tool (under development) is intended to make it easier to automate
 certain tasks in Google slides, but allowing one to programmatically select
 certain elements and perform simple transformations on them in batch.
 
@@ -17,20 +17,26 @@ If one wanted to update the fill color of a set of ellipses on a particular slid
         1CItHgsDlA1Sbz_g4zXh678C5_qCiAtOf7mKVQH9rYiI
 
 
-The author is currently implemented transformations and filters in a rather ad
+The author is currently implementing transformations and filters in a rather ad
 hoc manner, depending on what is needed for his particular presentation, and
 would appreciate contributions.
 
 ## Current List of Supported Filters
 
- * `Key = Value`: Match PageElements whose nested dictionary representation
-   contains at some level of the nesting the given key asssociated with the
-   given value.
+ * `Key = <lambda_using_v>`: Match PageElements whose nested dictionary representation
+   contains at some level of the nesting the given key asssociated with a value
+   satisfying the lambda. The lambda passes in the value associated with a key
+   using the name `v`.
 
 ## Current List of Supported Transformations
 
  * `textStyle`
     * `fontSize`
+ * `shapeProperties`
+    * Use `shapeProperties:<key>=&<objectId>` to transform an arbitrary key's
+      value to match that of another object.
+ * `transformPageElement`
+    * Use `'transformPageElement:=&g4361db93fb_1_34'` to match the transformation of another page element.
 
 
 ## Setup Instructions
@@ -60,4 +66,3 @@ sudo pip install --upgrade oauth2client
  * https://developers.google.com/slides/reference/rest/v1/presentations.pages/other#Page.ThemeColorType
  * https://developers.google.com/slides/reference/rest/v1/presentations/request
  * https://developers.google.com/slides/reference/rest/v1/presentations.pages#Page.PageElement
-

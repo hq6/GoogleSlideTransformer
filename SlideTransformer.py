@@ -16,6 +16,9 @@ from sys import exit, argv
 # Nested dictionaries
 from collections import defaultdict
 
+# Print dictionaries
+import json
+
 # If modifying these scopes, delete the file token.json.
 SCOPES = 'https://www.googleapis.com/auth/presentations'
 
@@ -47,7 +50,7 @@ def getObjectIds(pageElements, processedFilters):
       copyOfFilters = processedFilters.copy()
       eliminateMatchingCriteria(element, copyOfFilters)
       if not copyOfFilters: # All filters were matched
-          print(element)
+          print(json.dumps(element,indent=4))
           results.append(element['objectId'])
     return results
 
